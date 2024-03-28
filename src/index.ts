@@ -15,14 +15,14 @@ export default {
 		const method = request.method;
 		const path = url.pathname.replace(/[/]$/, '');
 
-		if (path !== '/api/check' && path !== '/') {
+		if (path !== '/api/check' && path !== '') {
 			return utils.toError(`Unknown "${path}" URL; try "/api/check" instead.`, 404);
 		}
 
-		if (path === '/') {
+		if (path === '') {
 			return utils.reply({
-				"hi": "welcome to antiphishing api",
-				"how to use?": "https://<url>/api/check?url=example.com",
+				hi: 'welcome to antiphishing api',
+				'how to use?': `https://${request.headers.get('host')}/api/check?url=example.com`,
 			});
 		}
 
@@ -46,13 +46,13 @@ export default {
 				});
 				if (result) {
 					return utils.reply({
-						"bad": "yes",
-						"type":result.type,
-						"domain":result.url
-					})
+						bad: 'yes',
+						type: result.type,
+						domain: result.url,
+					});
 				} else {
 					return utils.reply({
-						"bad": "no",
+						bad: 'no',
 					});
 				}
 			}
