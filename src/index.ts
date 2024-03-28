@@ -15,8 +15,15 @@ export default {
 		const method = request.method;
 		const path = url.pathname.replace(/[/]$/, '');
 
-		if (path !== '/api/check') {
-			return utils.toError(`Unknown "${path}" URL; try "/api/todos" instead.`, 404);
+		if (path !== '/api/check' && path !== '/') {
+			return utils.toError(`Unknown "${path}" URL; try "/api/check" instead.`, 404);
+		}
+
+		if (path === '/') {
+			return utils.reply({
+				"hi": "welcome to antiphishing api",
+				"how to use?": "https://<url>/api/check?url=example.com",
+			});
 		}
 
 		App = App || new Realm.App(env.REALM_APPID);
