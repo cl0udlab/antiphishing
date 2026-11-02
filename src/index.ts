@@ -1,12 +1,8 @@
-import * as Realm from 'realm-web';
 import * as utils from './utils';
 
 export interface Env {
-	REALM_APPID: string;
-	Token: string;
+	DB: D1Database;
 }
-
-let App: Realm.App;
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -26,59 +22,26 @@ export default {
 			});
 		}
 
-		App = App || new Realm.App(env.REALM_APPID);
-		try {
-			const credentials = Realm.Credentials.apiKey(env.Token);
-			var user = await App.logIn(credentials);
-			var client = user.mongoClient('mongodb-atlas');
-		} catch (err) {
-			return utils.toError('Error with authentication.', 500);
-		}
-		const collection = client.db('fishes').collection('antifish');
-		try {
-			if (method === 'GET') {
-				const searchurl = url.searchParams.get('url') || '';
-				if (!searchurl) {
-					return utils.toError('Missing URL parameter.', 400);
-				}
-				const result = await collection.findOne({
-					url: searchurl.toString(),
-				});
-				if (result) {
-					return utils.reply({
-						bad: 'yes',
-						type: result.type,
-						domain: result.url,
-					});
-				} else {
-					return utils.reply({
-						bad: 'no',
-					});
-				}
-			}
-
-			if (method === 'POST') {
-				const usercollection = client.db('users').collection('user');
-				const theurl = url.searchParams.get('url');
-				const type = url.searchParams.get('type');
-				const token = request.headers.get('authorization');
-				if (!token) {
-					return utils.toError('Missing authorization header.', 400);
-				}
-				const user = await usercollection.findOne({
-					token: token,
-				});
-				if (!user) {
-					return utils.toError('Unauthorized.', 401);
-				}
-				return utils.reply(
-					await collection.insertOne({
-						url: theurl,
-						type: type,
-					})
-				);
-			}
+		if (method !== 'GET') {
 			return utils.toError('Method not allowed.', 405);
+		}
+
+		const searchurl = (url.searchParams.get('url') || '').trim().toLowerCase();
+		if (!searchurl) {
+			return utils.toError('Missing URL parameter.', 400);
+		}
+		try {
+			const type = await env.DB.prepare('SELECT type FROM fishes WHERE url = ?').bind(searchurl).first<string>('type');
+			if (type !== null) {
+				return utils.reply({
+					bad: 'yes',
+					type: type,
+					domain: searchurl,
+				});
+			}
+			return utils.reply({
+				bad: 'no',
+			});
 		} catch (err) {
 			const msg = (err as Error).message || 'Error with query.';
 			return utils.toError(msg, 500);

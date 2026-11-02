@@ -170,3 +170,6 @@ dist
 
 .dev.vars
 .wrangler/
+
+# sync state
+.sync-state/

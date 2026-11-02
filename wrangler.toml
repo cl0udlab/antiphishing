@@ -3,5 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2024-03-20"
 compatibility_flags = ["nodejs_compat"]
 
-[vars]
-REALM_APPID = "application-0-tvuzk"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "antiphishing"
+database_id = "055ed342-f32e-4c67-9489-59c9c5be9f6a"
